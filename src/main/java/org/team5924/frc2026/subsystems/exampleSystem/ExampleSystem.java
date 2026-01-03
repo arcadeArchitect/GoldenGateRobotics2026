@@ -24,6 +24,7 @@ import org.littletonrobotics.junction.Logger;
 import org.team5924.frc2026.RobotState;
 import org.team5924.frc2026.util.Elastic.Notification;
 import org.team5924.frc2026.util.Elastic.Notification.NotificationLevel;
+import org.team5924.frc2026.util.Elastic;
 import org.team5924.frc2026.util.LoggedTunableNumber;
 
 public class ExampleSystem extends SubsystemBase {
@@ -50,6 +51,7 @@ public class ExampleSystem extends SubsystemBase {
 
   private final Alert exampleMotorDisconnected;
   private final Notification exampleMotorDisconnectedNotification;
+  private boolean wasExampleMotorConnected = true;
 
   public ExampleSystem(ExampleSystemIO io) {
     this.io = io;
@@ -72,9 +74,11 @@ public class ExampleSystem extends SubsystemBase {
 
     exampleMotorDisconnected.set(!inputs.exampleMotorConnected);
 
-    /* if (!pivotInput.exampleConnected){
-        Elastic.sendNotification(exampleDisconnectedNotification);
-    } */
+    // prevents error spam
+    if (!inputs.exampleMotorConnected && wasExampleMotorConnected){
+        Elastic.sendNotification(exampleMotorDisconnectedNotification);
+    }
+    wasExampleMotorConnected = inputs.exampleMotorConnected;
   }
 
   public void runVolts(double volts) {

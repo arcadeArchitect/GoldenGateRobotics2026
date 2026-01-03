@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 import lombok.RequiredArgsConstructor;
 import org.littletonrobotics.junction.Logger;
+import org.team5924.frc2026.util.Elastic;
 import org.team5924.frc2026.util.Elastic.Notification;
 import org.team5924.frc2026.util.Elastic.Notification.NotificationLevel;
 
@@ -47,9 +48,13 @@ public abstract class GenericRollerSystem<G extends GenericRollerSystem.VoltageS
       new GenericRollerSystemIOInputsAutoLogged();
 
   private final Alert disconnected;
+  private final Notification disconnectedNotification;
+  private boolean wasMotorConnected = true;
+
+
   protected final Timer stateTimer = new Timer();
 
-  private final Notification disconnectedNotification;
+
 
   public GenericRollerSystem(String name, GenericRollerSystemIO io) {
     this.name = name;
@@ -70,8 +75,6 @@ public abstract class GenericRollerSystem<G extends GenericRollerSystem.VoltageS
     Logger.processInputs(name, genericInputs);
     disconnected.set(!genericInputs.motorConnected);
 
-    // if (!genericInputs.motorConnected) Elastic.sendNotification(disconnectedNotification);
-
     if (getGoalState() != lastState) {
       stateTimer.reset();
       lastState = getGoalState();
@@ -79,5 +82,12 @@ public abstract class GenericRollerSystem<G extends GenericRollerSystem.VoltageS
 
     io.runVolts(getGoalState().getVoltageSupplier().getAsDouble());
     Logger.recordOutput("Rollers/" + name + "Goal", getGoalState().toString());
+    
+    // prevents error spam
+    if (!genericInputs.motorConnected && wasMotorConnected)
+    {
+      Elastic.sendNotification(disconnectedNotification);
+    }
+    wasMotorConnected = genericInputs.motorConnected;
   }
 }
